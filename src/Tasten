@@ -68,6 +68,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 			conn, addr = s.accept()
 		except KeyboardInterrupt:
 			os._exit(0)
-		#when client connected run in new thred and continue listening
+		#when client connected run in new thread and continue listening
 		connList.append(threading.Thread(target = client, args = (conn, addr)))
 		connList[-1].start()
