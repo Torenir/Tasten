@@ -1,0 +1,12 @@
+KEY_Q p : notify-send 'if you press Q it sends this notification'
+KEY_Q h : notify-send 'if you hold Q this notification will be send'
+
+#random stuff
+KEY_P p : audtool playback-playpause
+KEY_D p : dmenu_run #be suckless
+
+#close window in focus
+KEY_C p : sh -c "kill -15 $(xprop -id $(xdotool getwindowfocus) | grep PID | awk '{print $3}')"
+
+KEY_ESC p : notify-send 'you can run command by pressing escape key'
+KEY_ESC h : however you can't overwrite default exit action no matter what you write

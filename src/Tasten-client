@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""
+	Copyright (C) 2021 Torenir
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
+import socket
+import evdev
+import argparse
+import os
+
+if not os.getuid() == 0:
+	print('Run as root')
+	exit()
+
+def setLeds(state):
+	device.set_led(evdev.ecodes.LED_NUML, state)
+	device.set_led(evdev.ecodes.LED_CAPSL, state)
+	device.set_led(evdev.ecodes.LED_SCROLLL, state)
+
+#sends a message of given length padded with spaces at the end
+def sendMessage(text, length):
+	msg = text.encode('utf-8')
+	msg += b' ' * (length - len(msg))
+	client.send(msg)
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-a', '--address', type=str, default='127.0.0.1', \
+	help='connection ip')
+parser.add_argument('-p', '--port', type=int, default=52100, \
+	help='connection port')
+parser.add_argument('-l', '--length', type=int, default=32, \
+	help='length of the message in bytes')
+parser.add_argument('-d', '--device', type=str, \
+	help='device name')
+args = parser.parse_args()
+
+if not args.device:
+	os._exit(1)
+
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((args.address, args.port))
+
+#create new device object and send name to the server
+device = evdev.InputDevice(f'/dev/input/{args.device}')
+device.grab()
+sendMessage(args.device, args.length)
+
+message = ''
+for event in device.read_loop():
+	if event.type == evdev.ecodes.EV_KEY:
+		key = evdev.categorize(event)
+
+		if key.keystate == key.key_down:
+			message = f'{key.keycode} p'
+
+		elif key.keystate == key.key_hold:
+			if key.keycode == 'KEY_ESC':
+				sendMessage('ENDCONNECTION', args.length)
+				os._exit(0)
+			else:
+				message = f'{key.keycode} h'
+				setLeds(1)
+
+		elif key.keystate == key.key_up:
+			sendMessage(message, args.length)
+			setLeds(0)

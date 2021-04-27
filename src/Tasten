@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""
+	Copyright (C) 2021 Torenir
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
+import socket
+import os
+import threading
+import argparse
+
+def loadKeys(file): #Loads the keymap into dictonary {('code', 'd/h') : 'command'}
+	temp = dict()
+	with open(file, 'r') as f:
+		lines = f.readlines()
+	for line in lines:
+		if 'KEY' in line:
+			line = line.split(' : ')
+			line[0] = line[0].split(' ')
+			temp.__setitem__((line[0][0], line[0][1]),line[1])
+	return temp
+
+def client(conn, addr):
+	#get device name included in the first message
+	deviceName = conn.recv(args.length).decode('utf-8').split(' ')[0]
+	#make config and if it exists load it to memory
+	os.system(f'mkdir -p /home/{os.environ["USER"]}/.config/Tasten/')
+	os.system(f'touch /home/{os.environ["USER"]}/.config/Tasten/{deviceName}')
+	keyMap = loadKeys(f'/home/{os.environ["USER"]}/.config/Tasten/{deviceName}')
+
+	while 1:
+		msg = conn.recv(args.length).decode('utf-8').split(' ')
+		if msg[0] == 'ENDCONNECTION':
+			conn.close()
+			break
+		#check if defined in config and run command in system default shell
+		elif (msg[0], msg[1]) in keyMap.keys():
+			os.system(keyMap[(msg[0], msg[1])])
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-a', '--address', type=str, default='127.0.0.1', \
+	help='connection ip')
+parser.add_argument('-p', '--port', type=int, default=52100, \
+	help='connection port')
+parser.add_argument('-l', '--length', type=int, default=32, \
+	help='length of the message in bytes')
+args = parser.parse_args()
+
+connList = []
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+	s.bind((args.address, args.port))
+	s.listen()
+	while 1:
+		try:
+			conn, addr = s.accept()
+		except KeyboardInterrupt:
+			os._exit(0)
+		#when client connected run in new thred and continue listening
+		connList.append(threading.Thread(target = client, args = (conn, addr)))
+		connList[-1].start()
