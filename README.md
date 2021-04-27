@@ -4,7 +4,7 @@ macro keyboard capable of using every single key. Every key on a keyboard can
 run up to 2 commands. First command can be run by clicking the key and
 the second one by holding it until keyboard leds light up.
 
-## Usage.
+## Usage
 - Connect the keyboard you want to use.
 - Run `# python -m evdev.evtest`.
 - Find event name of your keyboard in output of that command and
