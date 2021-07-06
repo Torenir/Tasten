@@ -21,7 +21,7 @@ import os
 import threading
 import argparse
 
-def loadKeys(file): #Loads the keymap into dictonary {('code', 'p/h') : 'command'}
+def loadKeys(file): #Loads the keymap into dictonary {('key', 'p/h') : 'command'}
 	temp = dict()
 	with open(file, 'r') as f:
 		lines = f.readlines()
@@ -29,6 +29,7 @@ def loadKeys(file): #Loads the keymap into dictonary {('code', 'p/h') : 'command
 		if 'KEY' in line:
 			line = line.split(' : ')
 			line[0] = line[0].split(' ')
+			line[1] = line[1].split('#')[0] #ignore in line comment
 			temp.__setitem__((line[0][0], line[0][1]),line[1])
 	return temp
 
@@ -45,9 +46,8 @@ def client(conn, addr):
 		if msg[0] == 'ENDCONNECTION':
 			conn.close()
 			break
-		#check if defined in config and run command in system default shell
-		elif (msg[0], msg[1]) in keyMap.keys():
-			os.system(keyMap[(msg[0], msg[1])])
+		#run command or print key
+		os.system(keyMap.get((msg[0], msg[1]), f'echo {msg[0]}'))
 
 
 parser = argparse.ArgumentParser()
