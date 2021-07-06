@@ -16,6 +16,7 @@ the second one by holding it until keyboard leds light up.
 your devices name: `# Tasten-client -d usb-SIGMACHIP_USB_Keyboard-event-kbd`.
 - You can have as many clients running as you want.
 - Keyboard capture can be turned off by holding `esc`.
+- To find keycodes run: `# python -m evdev.evtest`.
 
 ## Requirements
 * Python evdev library

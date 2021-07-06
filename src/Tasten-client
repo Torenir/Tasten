@@ -42,7 +42,7 @@ parser.add_argument('-a', '--address', type=str, default='127.0.0.1', \
 	help='connection ip')
 parser.add_argument('-p', '--port', type=int, default=52100, \
 	help='connection port')
-parser.add_argument('-l', '--length', type=int, default=64, \
+parser.add_argument('-l', '--length', type=int, default=32, \
 	help='length of the message in bytes')
 parser.add_argument('-d', '--device', type=str, \
 	help='device name in /dev/input/by-id/')
@@ -57,7 +57,7 @@ client.connect((args.address, args.port))
 #create new device object and send name to the server
 device = evdev.InputDevice(f'/dev/input/by-id/{args.device}')
 device.grab()
-sendMessage(args.device, args.length)
+sendMessage(args.device, 64)
 
 message = ''
 for event in device.read_loop():
