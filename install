@@ -1,7 +1,0 @@
-#!/bin/sh
-
-cp ./src/Tasten /bin/Tasten
-chmod 755 /bin/Tasten
-
-cp ./src/Tasten-client /bin/Tasten-client
-chmod 755 /bin/Tasten-client
